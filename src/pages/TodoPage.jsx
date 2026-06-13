@@ -44,10 +44,15 @@ function TodoPage() {
   const themeMode = useThemeStore((state) => state.mode);
   const [searchText, setSearchText] = useState('');
   const [filter, setFilter] = useState('all');
+  const [isPendingExpanded, setIsPendingExpanded] = useState(true);
+  const [isCompletedExpanded, setIsCompletedExpanded] = useState(true);
 
   useEffect(() => {
     fetchTodos();
   }, [fetchTodos]);
+
+  const toggleButtonClass =
+    'rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 shadow-sm transition hover:bg-slate-100 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700';
 
   const pendingCount = useMemo(
     () => todos.filter((todo) => !todo.done).length,
@@ -67,10 +72,34 @@ function TodoPage() {
     });
   }, [filter, searchText, todos]);
 
-  const pendingTodos = sortTodos(filteredTodos.filter((todo) => !todo.done));
-  const completedTodos = sortTodos(filteredTodos.filter((todo) => todo.done));
-  const previewTodos = sortTodos(filteredTodos);
+  const pendingTodos = sortTodos(todos.filter((todo) => !todo.done));
+  const completedTodos = sortTodos(todos.filter((todo) => todo.done));
+  const searchResults = sortTodos(filteredTodos);
+
+  const handleClearCompleted = () => {
+    if (completedTodos.length === 0) return;
+
+    const confirmed = window.confirm(
+      `완료된 할 일 ${completedTodos.length}개를 모두 삭제할까요?`
+    );
+
+    if (confirmed) {
+      clearCompleted();
+    }
+  };
   const theme = getWeatherTheme(weather?.weather?.[0]?.main, themeMode === 'dark');
+
+  const loadingBox = (
+    <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-500">
+      Supabase에서 할 일을 불러오는 중...
+    </div>
+  );
+
+  const emptyBox = (
+    <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-500">
+      등록된 할 일이 없습니다.
+    </div>
+  );
 
   return (
     <main
@@ -81,9 +110,6 @@ function TodoPage() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 lg:grid lg:grid-cols-[1fr_380px] lg:items-start">
         <section className="mx-auto w-full max-w-2xl space-y-5">
           <header className="rounded-[2rem] border border-white/70 bg-white/80 p-6 text-center shadow-sm backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/80">
-            <p className="text-sm font-bold text-blue-500 dark:text-blue-400">
-              React + Zustand + Supabase + Weather API
-            </p>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
               <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">
                 My Tasks
@@ -114,28 +140,44 @@ function TodoPage() {
           )}
 
           <section className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-sm font-extrabold text-slate-700 dark:text-slate-200">
-                진행 중인 할 일
-              </h2>
-              <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-                우선순위 높은 순으로 정렬
-              </span>
+            <div className="flex items-center justify-between gap-2 px-1">
+              <div className="min-w-0">
+                <h2 className="text-sm font-extrabold text-slate-700 dark:text-slate-200">
+                  진행 중인 할 일
+                  {!isLoading && (
+                    <span className="ml-1 text-slate-400 dark:text-slate-500">
+                      {pendingTodos.length}개
+                    </span>
+                  )}
+                </h2>
+                {isPendingExpanded && (
+                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    우선순위 높은 순으로 정렬
+                  </span>
+                )}
+              </div>
+              {pendingTodos.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setIsPendingExpanded((prev) => !prev)}
+                  className={toggleButtonClass}
+                  aria-expanded={isPendingExpanded}
+                >
+                  {isPendingExpanded ? '접기' : '더보기'}
+                </button>
+              )}
             </div>
 
-            {isLoading ? (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-500">
-                Supabase에서 할 일을 불러오는 중...
-              </div>
-            ) : pendingTodos.length > 0 ? (
-              pendingTodos.map((todo) => <TodoItem key={todo.id} todo={todo} />)
-            ) : (
-              <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-500">
-                {searchText || filter !== 'all'
-                  ? '조건에 맞는 미완료 항목이 없습니다.'
-                  : '등록된 할 일이 없습니다.'}
-              </div>
-            )}
+            {isPendingExpanded &&
+              (isLoading ? (
+                loadingBox
+              ) : pendingTodos.length > 0 ? (
+                pendingTodos.map((todo) => (
+                  <TodoItem key={todo.id} todo={todo} />
+                ))
+              ) : (
+                emptyBox
+              ))}
           </section>
 
           {completedTodos.length > 0 && (
@@ -148,19 +190,32 @@ function TodoPage() {
                 <div className="h-px flex-1 bg-slate-300 dark:bg-slate-600" />
               </div>
 
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={clearCompleted}
-                  className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 shadow-sm transition hover:bg-red-50 hover:text-red-500 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-300"
-                >
-                  완료 항목 정리
-                </button>
+              <div className="flex items-center justify-end gap-2">
+                {completedTodos.length > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setIsCompletedExpanded((prev) => !prev)}
+                      className={toggleButtonClass}
+                      aria-expanded={isCompletedExpanded}
+                    >
+                      {isCompletedExpanded ? '접기' : '더보기'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearCompleted}
+                      className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 shadow-sm transition hover:bg-red-50 hover:text-red-500 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+                    >
+                      완료항목 삭제
+                    </button>
+                  </>
+                )}
               </div>
 
-              {completedTodos.map((todo) => (
-                <TodoItem key={todo.id} todo={todo} />
-              ))}
+              {isCompletedExpanded &&
+                completedTodos.map((todo) => (
+                  <TodoItem key={todo.id} todo={todo} />
+                ))}
             </section>
           )}
         </section>
@@ -173,7 +228,7 @@ function TodoPage() {
             onSearchChange={setSearchText}
             filter={filter}
             onFilterChange={setFilter}
-            results={previewTodos}
+            results={searchResults}
           />
         </div>
       </div>

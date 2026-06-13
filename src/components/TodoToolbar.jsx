@@ -32,8 +32,6 @@ function TodoToolbar({
   onFilterChange,
   results = [],
 }) {
-  const hasActiveQuery = searchText.trim() !== '' || filter !== 'all';
-
   return (
     <section className="mt-4 rounded-3xl border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/75">
       <h2 className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
@@ -81,7 +79,7 @@ function TodoToolbar({
       <div className="mt-4 border-t border-slate-200 pt-3 dark:border-slate-700">
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {hasActiveQuery ? '검색 결과' : '미리보기'}
+            검색 결과
           </p>
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
             {results.length}개
@@ -89,7 +87,7 @@ function TodoToolbar({
         </div>
 
         {results.length > 0 ? (
-          <ul className="max-h-52 space-y-1.5 overflow-y-auto pr-1">
+          <ul className="space-y-1.5">
             {results.map((todo) => (
               <li key={todo.id}>
                 <button
@@ -138,7 +136,7 @@ function TodoToolbar({
           </ul>
         ) : (
           <p className="rounded-xl bg-slate-50 px-3 py-4 text-center text-xs font-medium text-slate-400 dark:bg-slate-800/60 dark:text-slate-500">
-            {hasActiveQuery
+            {filter !== 'all' || searchText.trim()
               ? '조건에 맞는 할 일이 없습니다.'
               : '등록된 할 일이 없습니다.'}
           </p>

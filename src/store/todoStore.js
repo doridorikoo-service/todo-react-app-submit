@@ -121,7 +121,7 @@ const useTodoStore = create((set, get) => ({
         todos: state.todos.filter((todo) => !todo.done),
       }));
     } catch (error) {
-      set({ error: error.message || '완료 항목을 정리하지 못했습니다.' });
+      set({ error: error.message || '완료 항목을 삭제하지 못했습니다.' });
     }
   },
 }));
