@@ -28,7 +28,7 @@ function AddTodo() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur"
+      className="rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-slate-700 dark:bg-slate-900/90"
     >
       <div className="flex flex-col gap-3">
         <label className="sr-only" htmlFor="todo-title">
@@ -40,7 +40,7 @@ function AddTodo() {
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           placeholder="할 일을 입력하세요..."
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-800 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-blue-900/40"
         />
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_1fr_auto]">
@@ -51,7 +51,7 @@ function AddTodo() {
             id="todo-priority"
             value={priority}
             onChange={(event) => setPriority(event.target.value)}
-            className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-blue-900/40"
           >
             {priorityOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -68,7 +68,7 @@ function AddTodo() {
             type="date"
             value={dueDate}
             onChange={(event) => setDueDate(event.target.value)}
-            className="rounded-2xl border border-slate-200 px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+            className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:focus:ring-blue-900/40"
           />
 
           <button

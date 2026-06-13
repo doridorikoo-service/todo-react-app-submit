@@ -38,7 +38,7 @@ function getDueInfo(dueDate, done) {
   if (diffDays < 0) {
     return {
       text: '마감 초과',
-      className: 'border-red-200 bg-red-50/80',
+      className: 'border-red-200 bg-red-50/80 dark:border-red-800 dark:bg-red-950/40',
       badge: 'bg-red-100 text-red-600',
     };
   }
@@ -46,7 +46,7 @@ function getDueInfo(dueDate, done) {
   if (diffDays === 0) {
     return {
       text: '오늘 마감',
-      className: 'border-amber-200 bg-amber-50/80',
+      className: 'border-amber-200 bg-amber-50/80 dark:border-amber-800 dark:bg-amber-950/40',
       badge: 'bg-amber-100 text-amber-700',
     };
   }
@@ -54,14 +54,14 @@ function getDueInfo(dueDate, done) {
   if (diffDays <= 2) {
     return {
       text: `${diffDays}일 남음`,
-      className: 'border-yellow-200 bg-yellow-50/70',
+      className: 'border-yellow-200 bg-yellow-50/70 dark:border-yellow-800 dark:bg-yellow-950/30',
       badge: 'bg-yellow-100 text-yellow-700',
     };
   }
 
   return {
     text: `${diffDays}일 남음`,
-    className: 'border-slate-200 bg-white/90',
+    className: 'border-slate-200 bg-white/90 dark:border-slate-600 dark:bg-slate-800/90',
     badge: 'bg-slate-100 text-slate-500',
   };
 }
@@ -117,7 +117,8 @@ function TodoItem({ todo }) {
   return (
     <article
       className={`rounded-3xl border border-l-4 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${currentPriority.border} ${
-        dueInfo?.className || 'border-slate-200 bg-white/90'
+        dueInfo?.className ||
+        'border-slate-200 bg-white/90 dark:border-slate-600 dark:bg-slate-800/90'
       } ${todo.done ? 'opacity-70' : ''}`}
     >
       <div className="flex items-start gap-3">
@@ -138,7 +139,7 @@ function TodoItem({ todo }) {
               onKeyDown={handleKeyDown}
               onBlur={commitEdit}
               autoFocus
-              className="w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-4 ring-blue-50"
+              className="w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-4 ring-blue-50 dark:border-blue-700 dark:bg-slate-800 dark:text-slate-100 dark:ring-blue-900/30"
             />
           ) : (
             <button
@@ -147,8 +148,8 @@ function TodoItem({ todo }) {
               title="더블클릭하면 수정할 수 있습니다."
               className={`w-full text-left text-sm font-semibold leading-6 ${
                 todo.done
-                  ? 'text-slate-400 line-through'
-                  : 'text-slate-800 hover:text-blue-700'
+                  ? 'text-slate-400 line-through dark:text-slate-500'
+                  : 'text-slate-800 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400'
               }`}
             >
               {todo.title}
@@ -179,7 +180,7 @@ function TodoItem({ todo }) {
                   onChange={(event) =>
                     updateDueDate(todo.id, event.target.value)
                   }
-                  className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-blue-900/40"
                   aria-label="마감일 변경"
                 />
                 {todo.dueDate && dueInfo && (
@@ -189,7 +190,7 @@ function TodoItem({ todo }) {
                     {todo.dueDate} · {dueInfo.text}
                   </span>
                 )}
-                <span className="text-slate-400">더블클릭으로 수정</span>
+                <span className="text-slate-400 dark:text-slate-500">더블클릭으로 수정</span>
               </>
             ) : (
               todo.dueDate && (
@@ -208,7 +209,7 @@ function TodoItem({ todo }) {
         <button
           type="button"
           onClick={() => deleteTodo(todo.id)}
-          className="rounded-2xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+          className="rounded-2xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-300"
           aria-label={`${todo.title} 삭제`}
         >
           <svg
