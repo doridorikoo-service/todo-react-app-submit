@@ -67,7 +67,8 @@ function getDueInfo(dueDate, done) {
 }
 
 function TodoItem({ todo }) {
-  const { toggleTodo, updateTodo, updatePriority, deleteTodo } = useTodoStore();
+  const { toggleTodo, updateTodo, updatePriority, updateDueDate, deleteTodo } =
+    useTodoStore();
   const [isEditing, setIsEditing] = useState(false);
   const [draftTitle, setDraftTitle] = useState(todo.title);
   const isCancelingRef = useRef(false);
@@ -166,18 +167,40 @@ function TodoItem({ todo }) {
               <option value="low">낮음</option>
             </select>
 
-            {todo.dueDate && (
-              <span
-                className={`rounded-full px-2 py-1 font-semibold ${
-                  dueInfo?.badge || 'bg-slate-100 text-slate-500'
-                }`}
-              >
-                {todo.dueDate} · {dueInfo?.text || '완료됨'}
-              </span>
-            )}
-
-            {!todo.done && (
-              <span className="text-slate-400">더블클릭으로 수정</span>
+            {!todo.done ? (
+              <>
+                <label className="sr-only" htmlFor={`todo-due-${todo.id}`}>
+                  마감일
+                </label>
+                <input
+                  id={`todo-due-${todo.id}`}
+                  type="date"
+                  value={todo.dueDate || ''}
+                  onChange={(event) =>
+                    updateDueDate(todo.id, event.target.value)
+                  }
+                  className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  aria-label="마감일 변경"
+                />
+                {todo.dueDate && dueInfo && (
+                  <span
+                    className={`rounded-full px-2 py-1 font-semibold ${dueInfo.badge}`}
+                  >
+                    {todo.dueDate} · {dueInfo.text}
+                  </span>
+                )}
+                <span className="text-slate-400">더블클릭으로 수정</span>
+              </>
+            ) : (
+              todo.dueDate && (
+                <span
+                  className={`rounded-full px-2 py-1 font-semibold ${
+                    dueInfo?.badge || 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {todo.dueDate} · {dueInfo?.text || '완료됨'}
+                </span>
+              )
             )}
           </div>
         </div>

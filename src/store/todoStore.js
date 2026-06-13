@@ -1,87 +1,129 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import {
+  createTodo as createTodoInDb,
+  fetchTodos,
+  patchTodo,
+  removeCompletedTodos,
+  removeTodo,
+} from '../lib/todoApi';
 
-const initialTodos = [
-  {
-    id: 1,
-    title: 'React Todo 프로젝트 요구사항 확인하기',
-    done: false,
-    priority: 'high',
-    dueDate: '',
-    createdAt: '2026-06-10T09:00:00.000Z',
-  },
-  {
-    id: 2,
-    title: '날씨 API 키 .env에 입력하기',
-    done: false,
-    priority: 'medium',
-    dueDate: '',
-    createdAt: '2026-06-10T09:10:00.000Z',
-  },
-  {
-    id: 3,
-    title: '실행 화면 캡처해서 제출 파일 정리하기',
-    done: true,
-    priority: 'low',
-    dueDate: '',
-    createdAt: '2026-06-10T09:20:00.000Z',
-  },
-];
+const useTodoStore = create((set, get) => ({
+  todos: [],
+  isLoading: false,
+  isSaving: false,
+  error: null,
 
-const createTodo = ({ title, priority = 'medium', dueDate = '' }) => ({
-  id: Date.now(),
-  title,
-  done: false,
-  priority,
-  dueDate,
-  createdAt: new Date().toISOString(),
-});
+  fetchTodos: async () => {
+    set({ isLoading: true, error: null });
 
-const useTodoStore = create(
-  persist(
-    (set) => ({
-      todos: initialTodos,
-
-      addTodo: ({ title, priority, dueDate }) =>
-        set((state) => ({
-          todos: [...state.todos, createTodo({ title, priority, dueDate })],
-        })),
-
-      toggleTodo: (id) =>
-        set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id ? { ...todo, done: !todo.done } : todo
-          ),
-        })),
-
-      updateTodo: (id, newTitle) =>
-        set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id ? { ...todo, title: newTitle } : todo
-          ),
-        })),
-
-      updatePriority: (id, priority) =>
-        set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id ? { ...todo, priority } : todo
-          ),
-        })),
-
-      deleteTodo: (id) =>
-        set((state) => ({
-          todos: state.todos.filter((todo) => todo.id !== id),
-        })),
-
-      clearCompleted: () =>
-        set((state) => ({
-          todos: state.todos.filter((todo) => !todo.done),
-        })),
-    }),
-    {
-      name: 'todo-react-app-storage',
+    try {
+      const todos = await fetchTodos();
+      set({ todos, isLoading: false });
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error.message || '할 일 목록을 불러오지 못했습니다.',
+      });
     }
-  )
-);
+  },
+
+  addTodo: async ({ title, priority, dueDate }) => {
+    set({ isSaving: true, error: null });
+
+    try {
+      const todo = await createTodoInDb({ title, priority, dueDate });
+      set((state) => ({
+        todos: [...state.todos, todo],
+        isSaving: false,
+      }));
+    } catch (error) {
+      set({
+        isSaving: false,
+        error: error.message || '할 일을 추가하지 못했습니다.',
+      });
+    }
+  },
+
+  toggleTodo: async (id) => {
+    const current = get().todos.find((todo) => todo.id === id);
+    if (!current) return;
+
+    set({ error: null });
+
+    try {
+      const updated = await patchTodo(id, { done: !current.done });
+      set((state) => ({
+        todos: state.todos.map((todo) => (todo.id === id ? updated : todo)),
+      }));
+    } catch (error) {
+      set({ error: error.message || '완료 상태를 변경하지 못했습니다.' });
+    }
+  },
+
+  updateTodo: async (id, newTitle) => {
+    set({ error: null });
+
+    try {
+      const updated = await patchTodo(id, { title: newTitle });
+      set((state) => ({
+        todos: state.todos.map((todo) => (todo.id === id ? updated : todo)),
+      }));
+    } catch (error) {
+      set({ error: error.message || '할 일을 수정하지 못했습니다.' });
+    }
+  },
+
+  updatePriority: async (id, priority) => {
+    set({ error: null });
+
+    try {
+      const updated = await patchTodo(id, { priority });
+      set((state) => ({
+        todos: state.todos.map((todo) => (todo.id === id ? updated : todo)),
+      }));
+    } catch (error) {
+      set({ error: error.message || '우선순위를 변경하지 못했습니다.' });
+    }
+  },
+
+  updateDueDate: async (id, dueDate) => {
+    set({ error: null });
+
+    try {
+      const updated = await patchTodo(id, { dueDate });
+      set((state) => ({
+        todos: state.todos.map((todo) => (todo.id === id ? updated : todo)),
+      }));
+    } catch (error) {
+      set({ error: error.message || '마감일을 변경하지 못했습니다.' });
+    }
+  },
+
+  deleteTodo: async (id) => {
+    set({ error: null });
+
+    try {
+      await removeTodo(id);
+      set((state) => ({
+        todos: state.todos.filter((todo) => todo.id !== id),
+      }));
+    } catch (error) {
+      set({ error: error.message || '할 일을 삭제하지 못했습니다.' });
+    }
+  },
+
+  clearCompleted: async () => {
+    set({ error: null });
+
+    try {
+      await removeCompletedTodos();
+      set((state) => ({
+        todos: state.todos.filter((todo) => !todo.done),
+      }));
+    } catch (error) {
+      set({ error: error.message || '완료 항목을 정리하지 못했습니다.' });
+    }
+  },
+}));
 
 export default useTodoStore;

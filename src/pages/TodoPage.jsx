@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import AddTodo from '../components/AddTodo';
 import TodoItem from '../components/TodoItem';
 import TodoToolbar from '../components/TodoToolbar';
@@ -33,10 +33,17 @@ function sortTodos(todos) {
 
 function TodoPage() {
   const todos = useTodoStore((state) => state.todos);
+  const isLoading = useTodoStore((state) => state.isLoading);
+  const error = useTodoStore((state) => state.error);
+  const fetchTodos = useTodoStore((state) => state.fetchTodos);
   const clearCompleted = useTodoStore((state) => state.clearCompleted);
   const weather = useWeatherStore((state) => state.weather);
   const [searchText, setSearchText] = useState('');
   const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    fetchTodos();
+  }, [fetchTodos]);
 
   const pendingCount = useMemo(
     () => todos.filter((todo) => !todo.done).length,
@@ -69,7 +76,7 @@ function TodoPage() {
         <section className="mx-auto w-full max-w-2xl space-y-5">
           <header className="rounded-[2rem] border border-white/70 bg-white/80 p-6 text-center shadow-sm backdrop-blur">
             <p className="text-sm font-bold text-blue-500">
-              React + Zustand + Weather API
+              React + Zustand + Supabase + Weather API
             </p>
             <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
               <h1 className="text-4xl font-black tracking-tight text-slate-900">
@@ -94,6 +101,12 @@ function TodoPage() {
 
           <AddTodo />
 
+          {error && (
+            <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600">
+              DB 오류: {error}
+            </div>
+          )}
+
           <TodoToolbar
             searchText={searchText}
             onSearchChange={setSearchText}
@@ -111,7 +124,11 @@ function TodoPage() {
               </span>
             </div>
 
-            {pendingTodos.length > 0 ? (
+            {isLoading ? (
+              <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400">
+                Supabase에서 할 일을 불러오는 중...
+              </div>
+            ) : pendingTodos.length > 0 ? (
               pendingTodos.map((todo) => <TodoItem key={todo.id} todo={todo} />)
             ) : (
               <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400">
@@ -163,6 +180,7 @@ function TodoPage() {
               <li>✅ 남은 할 일 카운트 배지</li>
               <li>✅ 검색 및 전체/미완료/완료 필터</li>
               <li>✅ 우선순위·마감일 강조</li>
+              <li>✅ Supabase DB 연동</li>
               <li>✅ OpenWeatherMap API 연동</li>
               <li>✅ 날씨별 배경 테마</li>
             </ul>

@@ -9,6 +9,7 @@
 - React 19
 - Tailwind CSS 4
 - Zustand
+- Supabase
 - OpenWeatherMap API
 
 ## 구현 기능
@@ -22,7 +23,7 @@
 - 마감일 지정, 오늘 마감 / 마감 초과 강조
 - OpenWeatherMap 날씨 API 연동
 - 날씨 상태에 따른 배경 테마 변경
-- localStorage 기반 Todo 상태 유지
+- Supabase PostgreSQL 기반 Todo 저장
 
 ## 실행 방법
 
@@ -32,6 +33,17 @@ npm run dev
 ```
 
 브라우저에서 `http://localhost:5173`으로 접속합니다.
+
+## Supabase 설정
+
+1. Supabase 대시보드 → **SQL Editor**에서 `supabase/todos.sql` 내용을 실행합니다.
+2. **Project Settings → API**에서 Project URL을 복사합니다.
+3. `.env`에 아래 값을 입력합니다.
+
+```env
+VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=발급받은_publishable_key
+```
 
 ## 날씨 API 키 설정
 
