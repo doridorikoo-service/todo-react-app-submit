@@ -121,6 +121,7 @@ function TodoItem({ todo }) {
 
   return (
     <article
+      id={`todo-${todo.id}`}
       className={`rounded-3xl border border-l-4 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${currentPriority.border} ${
         dueInfo?.className ||
         'border-slate-200 bg-white/90 dark:border-slate-600 dark:bg-slate-800/90'

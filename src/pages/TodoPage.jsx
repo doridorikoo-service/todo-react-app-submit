@@ -69,6 +69,7 @@ function TodoPage() {
 
   const pendingTodos = sortTodos(filteredTodos.filter((todo) => !todo.done));
   const completedTodos = sortTodos(filteredTodos.filter((todo) => todo.done));
+  const previewTodos = sortTodos(filteredTodos);
   const theme = getWeatherTheme(weather?.weather?.[0]?.main, themeMode === 'dark');
 
   return (
@@ -111,13 +112,6 @@ function TodoPage() {
               DB 오류: {error}
             </div>
           )}
-
-          <TodoToolbar
-            searchText={searchText}
-            onSearchChange={setSearchText}
-            filter={filter}
-            onFilterChange={setFilter}
-          />
 
           <section className="space-y-3">
             <div className="flex items-center justify-between px-1">
@@ -174,23 +168,13 @@ function TodoPage() {
         <div className="lg:sticky lg:top-6">
           <WeatherWidget />
 
-          <section className="mt-4 rounded-3xl border border-white/70 bg-white/75 p-4 shadow-sm backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/75">
-            <h2 className="text-sm font-extrabold text-slate-800 dark:text-slate-100">
-              구현 기능 체크
-            </h2>
-            <ul className="mt-3 space-y-2 text-sm text-slate-600 dark:text-slate-300">
-              <li>✅ Todo 추가 / 완료 토글 / 삭제</li>
-              <li>✅ 더블클릭 인라인 편집</li>
-              <li>✅ 완료 항목 구분 표시</li>
-              <li>✅ 남은 할 일 카운트 배지</li>
-              <li>✅ 검색 및 전체/미완료/완료 필터</li>
-              <li>✅ 우선순위·마감일 강조</li>
-              <li>✅ Supabase DB 연동</li>
-              <li>✅ OpenWeatherMap API 연동</li>
-              <li>✅ 밝은/다크 모드 전환</li>
-              <li>✅ 날씨별 배경 테마</li>
-            </ul>
-          </section>
+          <TodoToolbar
+            searchText={searchText}
+            onSearchChange={setSearchText}
+            filter={filter}
+            onFilterChange={setFilter}
+            results={previewTodos}
+          />
         </div>
       </div>
     </main>
