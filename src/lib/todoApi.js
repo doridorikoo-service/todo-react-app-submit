@@ -11,7 +11,7 @@ export function mapTodoRow(row) {
   };
 }
 
-function toDbTodo({ title, done = false, priority = 'medium', dueDate = '' }) {
+function toDbTodo({ title, done = false, priority = 'none', dueDate = '' }) {
   return {
     title,
     done,

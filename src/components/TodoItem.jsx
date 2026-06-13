@@ -2,13 +2,18 @@ import { useRef, useState } from 'react';
 import useTodoStore from '../store/todoStore';
 
 const priorityStyle = {
+  none: {
+    label: '없음',
+    badge: 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600',
+    border: 'border-l-slate-300',
+  },
   high: {
     label: '높음',
     badge: 'bg-red-50 text-red-600 border-red-100',
     border: 'border-l-red-400',
   },
   medium: {
-    label: '보통',
+    label: '중간',
     badge: 'bg-blue-50 text-blue-600 border-blue-100',
     border: 'border-l-blue-400',
   },
@@ -73,7 +78,7 @@ function TodoItem({ todo }) {
   const [draftTitle, setDraftTitle] = useState(todo.title);
   const isCancelingRef = useRef(false);
 
-  const currentPriority = priorityStyle[todo.priority] || priorityStyle.medium;
+  const currentPriority = priorityStyle[todo.priority] || priorityStyle.none;
   const dueInfo = getDueInfo(todo.dueDate, todo.done);
 
   const startEditing = () => {
@@ -163,8 +168,9 @@ function TodoItem({ todo }) {
               className={`rounded-full border px-2 py-1 text-xs font-semibold outline-none ${currentPriority.badge}`}
               aria-label="우선순위 변경"
             >
+              <option value="none">없음</option>
               <option value="high">높음</option>
-              <option value="medium">보통</option>
+              <option value="medium">중간</option>
               <option value="low">낮음</option>
             </select>
 

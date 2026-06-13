@@ -7,8 +7,8 @@ create table if not exists public.todos (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(trim(title)) > 0),
   done boolean not null default false,
-  priority text not null default 'medium'
-    check (priority in ('high', 'medium', 'low')),
+  priority text not null default 'none'
+    check (priority in ('none', 'high', 'medium', 'low')),
   due_date date,
   created_at timestamptz not null default timezone('utc', now())
 );
@@ -72,3 +72,17 @@ values
     null,
     timezone('utc', now()) - interval '1 day'
   );
+
+-- 기존 DB에 none 우선순위 추가 (이미 테이블이 있을 때만 실행)
+alter table public.todos drop constraint if exists todos_priority_check;
+alter table public.todos
+  add constraint todos_priority_check
+  check (priority in ('none', 'high', 'medium', 'low'));
+alter table public.todos alter column priority set default 'none';
+
+-- 기존 DB에 none 우선순위 추가 (이미 테이블이 있을 때만 실행)
+alter table public.todos drop constraint if exists todos_priority_check;
+alter table public.todos
+  add constraint todos_priority_check
+  check (priority in ('none', 'high', 'medium', 'low'));
+alter table public.todos alter column priority set default 'none';

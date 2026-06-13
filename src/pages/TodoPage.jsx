@@ -13,12 +13,13 @@ const priorityOrder = {
   high: 0,
   medium: 1,
   low: 2,
+  none: 3,
 };
 
 function sortTodos(todos) {
   return [...todos].sort((a, b) => {
     const priorityDiff =
-      (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1);
+      (priorityOrder[a.priority] ?? 3) - (priorityOrder[b.priority] ?? 3);
 
     if (priorityDiff !== 0) return priorityDiff;
 
