@@ -5,6 +5,7 @@ import { ChevronIcon, ClipboardIcon, SearchIcon } from '../components/Icons';
 import TodoItem from '../components/TodoItem';
 import TodoToolbar from '../components/TodoToolbar';
 import WeatherWidget from '../components/WeatherWidget';
+import MiniWeather from '../components/MiniWeather';
 import ThemeToggle from '../components/ThemeToggle';
 import useThemeStore from '../store/themeStore';
 import useTodoStore from '../store/todoStore';
@@ -121,6 +122,7 @@ function TodoPage() {
   const [isPendingExpanded, setIsPendingExpanded] = useState(true);
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(true);
   const resultsRef = useRef(null);
+  const weatherRef = useRef(null);
 
   useEffect(() => {
     fetchTodos();
@@ -138,6 +140,10 @@ function TodoPage() {
 
   const handleSearchChange = (value) => {
     setSearchText(value);
+  };
+
+  const scrollToWeather = () => {
+    weatherRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const pendingCount = useMemo(
@@ -233,9 +239,12 @@ function TodoPage() {
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
               {formatTodayDate()}
             </p>
-            <h1 className="mt-1 text-xl font-black tracking-tight text-slate-900 sm:text-2xl md:text-3xl dark:text-white">
-              {getGreeting()}
-            </h1>
+            <div className="mt-1 flex items-center justify-between gap-3">
+              <h1 className="min-w-0 text-xl font-black tracking-tight text-slate-900 sm:text-2xl md:text-3xl dark:text-white">
+                {getGreeting()}
+              </h1>
+              <MiniWeather accentColor={theme.accent} onClick={scrollToWeather} />
+            </div>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               {pendingCount > 0
                 ? `오늘 ${pendingCount}개의 할 일이 남았어요`
@@ -382,16 +391,23 @@ function TodoPage() {
 
           </section>
 
-          <aside className="min-w-0 space-y-4 xl:sticky xl:top-8">
-            <WeatherWidget accentColor={theme.accent} />
-            <TodoToolbar
-              searchText={searchText}
-              onSearchChange={handleSearchChange}
-              filter={filter}
-              onFilterChange={setFilter}
-              results={searchResults}
-              hideSearchOnMobile
-            />
+          <aside className="flex min-w-0 flex-col gap-4 xl:sticky xl:top-8">
+            <div className="order-1 xl:order-2">
+              <TodoToolbar
+                searchText={searchText}
+                onSearchChange={handleSearchChange}
+                filter={filter}
+                onFilterChange={setFilter}
+                results={searchResults}
+                hideSearchOnMobile
+              />
+            </div>
+            <div
+              ref={weatherRef}
+              className="order-2 scroll-mt-4 xl:order-1"
+            >
+              <WeatherWidget accentColor={theme.accent} />
+            </div>
           </aside>
         </div>
       </div>
