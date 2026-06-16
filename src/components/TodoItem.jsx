@@ -205,11 +205,11 @@ function TodoItem({ todo }) {
             </div>
 
             {!todo.done ? (
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="order-last flex w-full items-center gap-1.5 border-t border-slate-200/60 pt-2 sm:order-none sm:w-auto sm:border-0 sm:pt-0 dark:border-slate-700/60">
                 <label className="sr-only" htmlFor={`todo-due-${todo.id}`}>
                   마감일
                 </label>
-                <div className="relative inline-flex max-w-full items-center">
+                <div className="relative inline-flex min-w-0 flex-1 items-center sm:flex-initial">
                   <CalendarIcon className="pointer-events-none absolute left-2.5 h-3 w-3 text-slate-400" />
                   <input
                     id={`todo-due-${todo.id}`}
@@ -218,7 +218,7 @@ function TodoItem({ todo }) {
                     onChange={(event) =>
                       updateDueDate(todo.id, event.target.value)
                     }
-                    className="w-full max-w-[9.5rem] min-w-0 cursor-pointer rounded-lg border-0 bg-slate-100/80 py-1 pl-7 pr-1 text-[11px] font-semibold text-slate-600 outline-none transition hover:bg-slate-200/80 focus:ring-2 focus:ring-indigo-500/20 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700"
+                    className="w-full min-w-0 cursor-pointer rounded-lg border-0 bg-slate-100/80 py-1 pl-7 pr-1 text-[11px] font-semibold text-slate-600 outline-none transition hover:bg-slate-200/80 focus:ring-2 focus:ring-indigo-500/20 sm:max-w-[9.5rem] dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700"
                     aria-label="마감일 변경"
                   />
                 </div>
@@ -232,7 +232,7 @@ function TodoItem({ todo }) {
               </div>
             ) : (
               todo.dueDate && (
-                <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                <span className="order-last w-full rounded-lg border-t border-slate-200/60 bg-transparent px-0 py-2 text-[11px] font-medium text-slate-500 sm:order-none sm:w-auto sm:border-0 sm:py-0 sm:px-2 sm:bg-slate-100 dark:border-slate-700/60 dark:sm:bg-slate-700 dark:text-slate-400">
                   {todo.dueDate}
                 </span>
               )

@@ -218,7 +218,7 @@ function TodoPage() {
         </header>
 
         <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_min(100%,320px)] xl:items-start xl:gap-8">
-          <section className="order-2 min-w-0 space-y-4 sm:space-y-5 xl:order-1">
+          <section className="min-w-0 space-y-4 sm:space-y-5">
             <AddTodo />
 
             {error && (
@@ -292,7 +292,7 @@ function TodoPage() {
 
           </section>
 
-          <aside className="order-1 min-w-0 space-y-4 xl:order-2 xl:sticky xl:top-8">
+          <aside className="min-w-0 space-y-4 xl:sticky xl:top-8">
             <WeatherWidget accentColor={theme.accent} />
             <TodoToolbar
               searchText={searchText}
