@@ -1,26 +1,39 @@
 import { useRef, useState } from 'react';
 import useTodoStore from '../store/todoStore';
+import {
+  CalendarIcon,
+  FlagIcon,
+  PencilIcon,
+  TrashIcon,
+} from './Icons';
 
 const priorityStyle = {
   none: {
     label: '없음',
-    badge: 'bg-slate-50 text-slate-500 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600',
-    border: 'border-l-slate-300',
+    badge:
+      'bg-slate-100 text-slate-600 dark:bg-slate-700/80 dark:text-slate-300',
+    dot: 'bg-slate-400',
+    ring: 'ring-slate-200/60 dark:ring-slate-600/40',
   },
   high: {
     label: '높음',
-    badge: 'bg-red-50 text-red-600 border-red-100',
-    border: 'border-l-red-400',
+    badge: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300',
+    dot: 'bg-red-500',
+    ring: 'ring-red-200/60 dark:ring-red-800/40',
   },
   medium: {
     label: '중간',
-    badge: 'bg-blue-50 text-blue-600 border-blue-100',
-    border: 'border-l-blue-400',
+    badge:
+      'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
+    dot: 'bg-amber-500',
+    ring: 'ring-amber-200/60 dark:ring-amber-800/40',
   },
   low: {
     label: '낮음',
-    badge: 'bg-slate-50 text-slate-500 border-slate-100',
-    border: 'border-l-slate-300',
+    badge:
+      'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
+    dot: 'bg-emerald-500',
+    ring: 'ring-emerald-200/60 dark:ring-emerald-800/40',
   },
 };
 
@@ -43,31 +56,34 @@ function getDueInfo(dueDate, done) {
   if (diffDays < 0) {
     return {
       text: '마감 초과',
-      className: 'border-red-200 bg-red-50/80 dark:border-red-800 dark:bg-red-950/40',
-      badge: 'bg-red-100 text-red-600',
+      badge:
+        'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300',
+      urgent: true,
     };
   }
 
   if (diffDays === 0) {
     return {
       text: '오늘 마감',
-      className: 'border-amber-200 bg-amber-50/80 dark:border-amber-800 dark:bg-amber-950/40',
-      badge: 'bg-amber-100 text-amber-700',
+      badge:
+        'bg-orange-100 text-orange-700 dark:bg-orange-950/60 dark:text-orange-300',
+      urgent: true,
     };
   }
 
   if (diffDays <= 2) {
     return {
-      text: `${diffDays}일 남음`,
-      className: 'border-yellow-200 bg-yellow-50/70 dark:border-yellow-800 dark:bg-yellow-950/30',
-      badge: 'bg-yellow-100 text-yellow-700',
+      text: `D-${diffDays}`,
+      badge:
+        'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
+      urgent: false,
     };
   }
 
   return {
     text: `${diffDays}일 남음`,
-    className: 'border-slate-200 bg-white/90 dark:border-slate-600 dark:bg-slate-800/90',
-    badge: 'bg-slate-100 text-slate-500',
+    badge: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+    urgent: false,
   };
 }
 
@@ -122,91 +138,102 @@ function TodoItem({ todo }) {
   return (
     <article
       id={`todo-${todo.id}`}
-      className={`rounded-3xl border border-l-4 p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${currentPriority.border} ${
-        dueInfo?.className ||
-        'border-slate-200 bg-white/90 dark:border-slate-600 dark:bg-slate-800/90'
-      } ${todo.done ? 'opacity-70' : ''}`}
+      className={`group glass-panel min-w-0 overflow-hidden rounded-2xl p-3.5 transition-all duration-200 sm:p-4 hover:shadow-md ${
+        todo.done ? 'opacity-60' : ''
+      } ${dueInfo?.urgent && !todo.done ? `ring-1 ${currentPriority.ring}` : ''}`}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-2.5 sm:gap-3">
         <input
           type="checkbox"
           checked={todo.done}
           onChange={() => toggleTodo(todo.id)}
-          className="mt-1 h-5 w-5 rounded accent-blue-600"
+          className="todo-checkbox mt-0.5"
           aria-label={`${todo.title} 완료 여부`}
         />
 
         <div className="min-w-0 flex-1">
-          {isEditing ? (
-            <input
-              type="text"
-              value={draftTitle}
-              onChange={(event) => setDraftTitle(event.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={commitEdit}
-              autoFocus
-              className="w-full rounded-xl border border-blue-200 bg-white px-3 py-2 text-sm text-slate-800 outline-none ring-4 ring-blue-50 dark:border-blue-700 dark:bg-slate-800 dark:text-slate-100 dark:ring-blue-900/30"
-            />
-          ) : (
-            <button
-              type="button"
-              onDoubleClick={startEditing}
-              title="더블클릭하면 수정할 수 있습니다."
-              className={`w-full text-left text-sm font-semibold leading-6 ${
-                todo.done
-                  ? 'text-slate-400 line-through dark:text-slate-500'
-                  : 'text-slate-800 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400'
-              }`}
-            >
-              {todo.title}
-            </button>
-          )}
+          <div className="flex items-start gap-2">
+            {isEditing ? (
+              <input
+                type="text"
+                value={draftTitle}
+                onChange={(event) => setDraftTitle(event.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={commitEdit}
+                autoFocus
+                className="w-full rounded-lg border border-indigo-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 outline-none ring-4 ring-indigo-500/10 dark:border-indigo-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-indigo-500/20"
+              />
+            ) : (
+              <button
+                type="button"
+                onDoubleClick={startEditing}
+                title="더블클릭하여 수정"
+                className={`flex min-w-0 flex-1 items-start gap-1.5 text-left text-sm font-medium leading-snug break-words sm:text-[15px] ${
+                  todo.done
+                    ? 'text-slate-400 line-through dark:text-slate-500'
+                    : 'text-slate-800 dark:text-slate-100'
+                }`}
+              >
+                <span className="min-w-0 flex-1">{todo.title}</span>
+                {!todo.done && (
+                  <PencilIcon className="mt-1 h-3 w-3 shrink-0 text-slate-300 opacity-0 transition group-hover:opacity-100 dark:text-slate-600" />
+                )}
+              </button>
+            )}
+          </div>
 
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-            <select
-              value={todo.priority}
-              onChange={(event) => updatePriority(todo.id, event.target.value)}
-              className={`rounded-full border px-2 py-1 text-xs font-semibold outline-none ${currentPriority.badge}`}
-              aria-label="우선순위 변경"
-            >
-              <option value="none">없음</option>
-              <option value="high">높음</option>
-              <option value="medium">중간</option>
-              <option value="low">낮음</option>
-            </select>
+          <div className="mt-2.5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-1.5">
+            <label className="sr-only" htmlFor={`todo-priority-${todo.id}`}>
+              우선순위
+            </label>
+            <div className="relative inline-flex max-w-full items-center">
+              <FlagIcon className="pointer-events-none absolute left-2.5 h-3 w-3 text-slate-400" />
+              <select
+                id={`todo-priority-${todo.id}`}
+                value={todo.priority}
+                onChange={(event) =>
+                  updatePriority(todo.id, event.target.value)
+                }
+                className={`max-w-full cursor-pointer appearance-none rounded-lg py-1 pl-7 pr-6 text-[11px] font-semibold outline-none transition hover:opacity-80 ${currentPriority.badge}`}
+                aria-label="우선순위 변경"
+              >
+                <option value="none">없음</option>
+                <option value="high">높음</option>
+                <option value="medium">중간</option>
+                <option value="low">낮음</option>
+              </select>
+            </div>
 
             {!todo.done ? (
-              <>
+              <div className="flex flex-wrap items-center gap-1.5">
                 <label className="sr-only" htmlFor={`todo-due-${todo.id}`}>
                   마감일
                 </label>
-                <input
-                  id={`todo-due-${todo.id}`}
-                  type="date"
-                  value={todo.dueDate || ''}
-                  onChange={(event) =>
-                    updateDueDate(todo.id, event.target.value)
-                  }
-                  className="rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-semibold text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:focus:ring-blue-900/40"
-                  aria-label="마감일 변경"
-                />
+                <div className="relative inline-flex max-w-full items-center">
+                  <CalendarIcon className="pointer-events-none absolute left-2.5 h-3 w-3 text-slate-400" />
+                  <input
+                    id={`todo-due-${todo.id}`}
+                    type="date"
+                    value={todo.dueDate || ''}
+                    onChange={(event) =>
+                      updateDueDate(todo.id, event.target.value)
+                    }
+                    className="w-full max-w-[9.5rem] min-w-0 cursor-pointer rounded-lg border-0 bg-slate-100/80 py-1 pl-7 pr-1 text-[11px] font-semibold text-slate-600 outline-none transition hover:bg-slate-200/80 focus:ring-2 focus:ring-indigo-500/20 dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700"
+                    aria-label="마감일 변경"
+                  />
+                </div>
                 {todo.dueDate && dueInfo && (
                   <span
-                    className={`rounded-full px-2 py-1 font-semibold ${dueInfo.badge}`}
+                    className={`shrink-0 rounded-lg px-2 py-0.5 text-[11px] font-bold ${dueInfo.badge}`}
                   >
-                    {todo.dueDate} · {dueInfo.text}
+                    {dueInfo.text}
                   </span>
                 )}
-                <span className="text-slate-400 dark:text-slate-500">더블클릭으로 수정</span>
-              </>
+              </div>
             ) : (
               todo.dueDate && (
-                <span
-                  className={`rounded-full px-2 py-1 font-semibold ${
-                    dueInfo?.badge || 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {todo.dueDate} · {dueInfo?.text || '완료됨'}
+                <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-500 dark:bg-slate-700 dark:text-slate-400">
+                  {todo.dueDate}
                 </span>
               )
             )}
@@ -216,24 +243,10 @@ function TodoItem({ todo }) {
         <button
           type="button"
           onClick={() => deleteTodo(todo.id)}
-          className="rounded-2xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500 sm:text-slate-300 sm:opacity-0 sm:group-hover:opacity-100 dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
           aria-label={`${todo.title} 삭제`}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M3 6h18" />
-            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-          </svg>
+          <TrashIcon />
         </button>
       </div>
     </article>

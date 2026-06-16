@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import AddTodo from '../components/AddTodo';
+import EmptyState from '../components/EmptyState';
+import { ChevronIcon, ClipboardIcon } from '../components/Icons';
 import TodoItem from '../components/TodoItem';
 import TodoToolbar from '../components/TodoToolbar';
 import WeatherWidget from '../components/WeatherWidget';
@@ -7,7 +9,11 @@ import ThemeToggle from '../components/ThemeToggle';
 import useThemeStore from '../store/themeStore';
 import useTodoStore from '../store/todoStore';
 import useWeatherStore from '../store/weatherStore';
-import { getWeatherTheme } from '../utils/weatherTheme';
+import {
+  formatTodayDate,
+  getGreeting,
+  getWeatherTheme,
+} from '../utils/weatherTheme';
 
 const priorityOrder = {
   high: 0,
@@ -34,6 +40,63 @@ function sortTodos(todos) {
   });
 }
 
+function ProgressRing({ percent, accent }) {
+  const radius = 18;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percent / 100) * circumference;
+
+  return (
+    <div className="relative h-12 w-12 shrink-0">
+      <svg className="h-12 w-12 -rotate-90" viewBox="0 0 44 44">
+        <circle
+          cx="22"
+          cy="22"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="3"
+          className="text-slate-200 dark:text-slate-700"
+        />
+        <circle
+          cx="22"
+          cy="22"
+          r={radius}
+          fill="none"
+          stroke={accent}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-500"
+        />
+      </svg>
+      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300">
+        {percent}%
+      </span>
+    </div>
+  );
+}
+
+function SectionHeader({ title, count, expanded, onToggle, action }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex min-w-0 items-center gap-2 text-left"
+        aria-expanded={expanded}
+      >
+        <ChevronIcon expanded={expanded} className="text-slate-400" />
+        <h2 className="truncate text-sm font-bold text-slate-700 dark:text-slate-200">
+          {title}
+          <span className="ml-1.5 font-medium text-slate-400">{count}</span>
+        </h2>
+      </button>
+      {action && <div className="shrink-0">{action}</div>}
+    </div>
+  );
+}
+
 function TodoPage() {
   const todos = useTodoStore((state) => state.todos);
   const isLoading = useTodoStore((state) => state.isLoading);
@@ -51,13 +114,14 @@ function TodoPage() {
     fetchTodos();
   }, [fetchTodos]);
 
-  const toggleButtonClass =
-    'rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 shadow-sm transition hover:bg-slate-100 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700';
-
   const pendingCount = useMemo(
     () => todos.filter((todo) => !todo.done).length,
     [todos]
   );
+  const completedCount = todos.length - pendingCount;
+  const completionPercent =
+    todos.length > 0 ? Math.round((completedCount / todos.length) * 100) : 0;
+
   const filteredTodos = useMemo(() => {
     const lowerSearchText = searchText.trim().toLowerCase();
 
@@ -87,149 +151,157 @@ function TodoPage() {
       clearCompleted();
     }
   };
-  const theme = getWeatherTheme(weather?.weather?.[0]?.main, themeMode === 'dark');
 
-  const loadingBox = (
-    <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-500">
-      Supabase에서 할 일을 불러오는 중...
-    </div>
+  const theme = getWeatherTheme(
+    weather?.weather?.[0]?.main,
+    themeMode === 'dark'
   );
 
-  const emptyBox = (
-    <div className="rounded-3xl border border-dashed border-slate-300 bg-white/70 px-4 py-10 text-center text-sm font-semibold text-slate-400 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-500">
-      등록된 할 일이 없습니다.
+  const loadingSkeleton = (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="skeleton h-[72px] rounded-2xl" />
+      ))}
     </div>
   );
 
   return (
     <main
-      className="min-h-screen px-4 py-6 transition-all duration-500 sm:px-6 lg:px-8"
+      className="relative min-h-screen w-full overflow-x-clip transition-all duration-700"
       style={{ background: theme.background }}
     >
-      <ThemeToggle />
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 lg:grid lg:grid-cols-[1fr_380px] lg:items-start">
-        <section className="mx-auto w-full max-w-2xl space-y-5">
-          <header className="rounded-[2rem] border border-white/70 bg-white/80 p-6 text-center shadow-sm backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/80">
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-              <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-slate-100">
-                My Tasks
-              </h1>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        aria-hidden="true"
+        style={{
+          background: `radial-gradient(ellipse 80% 50% at 50% -20%, ${theme.accentSoft}, transparent)`,
+        }}
+      />
 
-              {pendingCount > 0 ? (
-                <span className="rounded-full bg-blue-600 px-3 py-1 text-sm font-bold text-white shadow-sm">
-                  남은 할 일 {pendingCount}개
-                </span>
-              ) : (
-                <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
-                  모두 완료!
-                </span>
-              )}
-            </div>
-            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-              추가, 수정, 완료 구분, 검색/필터, 우선순위, 마감일, 날씨 테마까지
-              적용한 Todo 앱입니다.
+      <div className="relative mx-auto w-full max-w-6xl px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-10">
+        <header className="animate-fade-up mb-6 flex flex-col gap-4 sm:mb-8 md:flex-row md:items-start md:justify-between">
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+              {formatTodayDate()}
             </p>
-          </header>
+            <h1 className="mt-1 text-xl font-black tracking-tight text-slate-900 sm:text-2xl md:text-3xl dark:text-white">
+              {getGreeting()}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {pendingCount > 0
+                ? `오늘 ${pendingCount}개의 할 일이 남았어요`
+                : todos.length > 0
+                  ? '모든 할 일을 완료했어요!'
+                  : '첫 번째 할 일을 추가해 보세요'}
+            </p>
+          </div>
 
-          <AddTodo />
-
-          {error && (
-            <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300">
-              DB 오류: {error}
-            </div>
-          )}
-
-          <section className="space-y-3">
-            <div className="flex items-center justify-between gap-2 px-1">
-              <div className="min-w-0">
-                <h2 className="text-sm font-extrabold text-slate-700 dark:text-slate-200">
-                  진행 중인 할 일
-                  {!isLoading && (
-                    <span className="ml-1 text-slate-400 dark:text-slate-500">
-                      {pendingTodos.length}개
-                    </span>
-                  )}
-                </h2>
-                {isPendingExpanded && (
-                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-                    우선순위 높은 순으로 정렬
-                  </span>
-                )}
+          <div className="flex w-full shrink-0 items-center justify-between gap-3 sm:w-auto sm:justify-end">
+            {todos.length > 0 && (
+              <div className="glass-panel flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-3 py-2 sm:flex-initial sm:px-4">
+                <ProgressRing
+                  percent={completionPercent}
+                  accent={theme.accent}
+                />
+                <div className="text-left">
+                  <p className="text-[11px] font-medium text-slate-400">
+                    진행률
+                  </p>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {completedCount}/{todos.length} 완료
+                  </p>
+                </div>
               </div>
-              {pendingTodos.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setIsPendingExpanded((prev) => !prev)}
-                  className={toggleButtonClass}
-                  aria-expanded={isPendingExpanded}
-                >
-                  {isPendingExpanded ? '접기' : '더보기'}
-                </button>
-              )}
+            )}
+            <ThemeToggle />
+          </div>
+        </header>
+
+        <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_min(100%,320px)] xl:items-start xl:gap-8">
+          <section className="order-2 min-w-0 space-y-4 sm:space-y-5 xl:order-1">
+            <AddTodo />
+
+            {error && (
+              <div
+                role="alert"
+                className="rounded-2xl border border-red-200/60 bg-red-50/80 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-300"
+              >
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <SectionHeader
+                title="진행 중"
+                count={pendingTodos.length}
+                expanded={isPendingExpanded}
+                onToggle={() => setIsPendingExpanded((prev) => !prev)}
+              />
+
+              {isPendingExpanded &&
+                (isLoading ? (
+                  loadingSkeleton
+                ) : pendingTodos.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {pendingTodos.map((todo, index) => (
+                      <div
+                        key={todo.id}
+                        className="animate-fade-up"
+                        style={{ animationDelay: `${index * 0.04}s` }}
+                      >
+                        <TodoItem todo={todo} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState
+                    icon={ClipboardIcon}
+                    title="진행 중인 할 일이 없어요"
+                    description="위 입력창에서 새로운 할 일을 추가해 보세요"
+                  />
+                ))}
             </div>
 
-            {isPendingExpanded &&
-              (isLoading ? (
-                loadingBox
-              ) : pendingTodos.length > 0 ? (
-                pendingTodos.map((todo) => (
-                  <TodoItem key={todo.id} todo={todo} />
-                ))
-              ) : (
-                emptyBox
-              ))}
-          </section>
-
-          {completedTodos.length > 0 && (
-            <section className="space-y-3 pt-2">
-              <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-slate-300 dark:bg-slate-600" />
-                <p className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 shadow-sm dark:bg-slate-800/80 dark:text-slate-300">
-                  완료된 항목 {completedTodos.length}개
-                </p>
-                <div className="h-px flex-1 bg-slate-300 dark:bg-slate-600" />
-              </div>
-
-              <div className="flex items-center justify-end gap-2">
-                {completedTodos.length > 0 && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setIsCompletedExpanded((prev) => !prev)}
-                      className={toggleButtonClass}
-                      aria-expanded={isCompletedExpanded}
-                    >
-                      {isCompletedExpanded ? '접기' : '더보기'}
-                    </button>
+            {completedTodos.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <SectionHeader
+                  title="완료됨"
+                  count={completedTodos.length}
+                  expanded={isCompletedExpanded}
+                  onToggle={() => setIsCompletedExpanded((prev) => !prev)}
+                  action={
                     <button
                       type="button"
                       onClick={handleClearCompleted}
-                      className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-500 shadow-sm transition hover:bg-red-50 hover:text-red-500 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-red-950/40 dark:hover:text-red-300"
+                      className="rounded-lg px-2.5 py-1 text-[11px] font-semibold text-slate-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                     >
-                      완료항목 삭제
+                      전체 삭제
                     </button>
-                  </>
+                  }
+                />
+
+                {isCompletedExpanded && (
+                  <div className="space-y-2.5">
+                    {completedTodos.map((todo) => (
+                      <TodoItem key={todo.id} todo={todo} />
+                    ))}
+                  </div>
                 )}
               </div>
+            )}
 
-              {isCompletedExpanded &&
-                completedTodos.map((todo) => (
-                  <TodoItem key={todo.id} todo={todo} />
-                ))}
-            </section>
-          )}
-        </section>
+          </section>
 
-        <div className="lg:sticky lg:top-6">
-          <WeatherWidget />
-
-          <TodoToolbar
-            searchText={searchText}
-            onSearchChange={setSearchText}
-            filter={filter}
-            onFilterChange={setFilter}
-            results={searchResults}
-          />
+          <aside className="order-1 min-w-0 space-y-4 xl:order-2 xl:sticky xl:top-8">
+            <WeatherWidget accentColor={theme.accent} />
+            <TodoToolbar
+              searchText={searchText}
+              onSearchChange={setSearchText}
+              filter={filter}
+              onFilterChange={setFilter}
+              results={searchResults}
+            />
+          </aside>
         </div>
       </div>
     </main>
