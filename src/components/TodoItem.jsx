@@ -1,41 +1,38 @@
 import { useRef, useState } from 'react';
 import useTodoStore from '../store/todoStore';
-import {
-  CalendarIcon,
-  FlagIcon,
-  PencilIcon,
-  TrashIcon,
-} from './Icons';
+import { ChevronIcon, PencilIcon, TrashIcon } from './Icons';
+
+const metaChipClass = 'todo-meta-chip shrink-0';
 
 const priorityStyle = {
   none: {
     label: '없음',
     badge:
-      'bg-slate-100 text-slate-600 dark:bg-slate-700/80 dark:text-slate-300',
-    dot: 'bg-slate-400',
+      'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
     ring: 'ring-slate-200/60 dark:ring-slate-600/40',
   },
   high: {
     label: '높음',
-    badge: 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300',
-    dot: 'bg-red-500',
+    badge:
+      'bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300',
     ring: 'ring-red-200/60 dark:ring-red-800/40',
   },
   medium: {
     label: '중간',
     badge:
-      'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300',
-    dot: 'bg-amber-500',
+      'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
     ring: 'ring-amber-200/60 dark:ring-amber-800/40',
   },
   low: {
     label: '낮음',
     badge:
-      'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300',
-    dot: 'bg-emerald-500',
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300',
     ring: 'ring-emerald-200/60 dark:ring-emerald-800/40',
   },
 };
+
+const dateChipClass =
+  'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
 
 function getLocalDate(dateText) {
   if (!dateText) return null;
@@ -85,6 +82,30 @@ function getDueInfo(dueDate, done) {
     badge: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
     urgent: false,
   };
+}
+
+function PrioritySelect({ id, value, onChange, badgeClass, label }) {
+  return (
+    <div className={`relative shrink-0 ${metaChipClass} ${badgeClass} pr-4`}>
+      <span className="pointer-events-none">{label}</span>
+      <ChevronIcon
+        expanded
+        className="pointer-events-none absolute right-1 top-1/2 h-2 w-2 -translate-y-1/2 opacity-40"
+      />
+      <select
+        id={id}
+        value={value}
+        onChange={onChange}
+        className="absolute inset-0 cursor-pointer opacity-0"
+        aria-label="우선순위 변경"
+      >
+        <option value="none">없음</option>
+        <option value="high">높음</option>
+        <option value="medium">중간</option>
+        <option value="low">낮음</option>
+      </select>
+    </div>
+  );
 }
 
 function TodoItem({ todo }) {
@@ -191,57 +212,42 @@ function TodoItem({ todo }) {
             )}
           </div>
 
-          <div className="mt-2.5 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-1.5">
+          <div className="mt-2 flex flex-nowrap items-center gap-1.5 overflow-x-auto">
             <label className="sr-only" htmlFor={`todo-priority-${todo.id}`}>
               우선순위
             </label>
-            <div className="relative inline-flex max-w-full items-center">
-              <FlagIcon className="pointer-events-none absolute left-2.5 h-3 w-3 text-slate-400" />
-              <select
-                id={`todo-priority-${todo.id}`}
-                value={todo.priority}
-                onChange={(event) =>
-                  updatePriority(todo.id, event.target.value)
-                }
-                className={`max-w-full cursor-pointer appearance-none rounded-lg py-1 pl-7 pr-6 text-[11px] font-semibold outline-none transition hover:opacity-80 ${currentPriority.badge}`}
-                aria-label="우선순위 변경"
-              >
-                <option value="none">없음</option>
-                <option value="high">높음</option>
-                <option value="medium">중간</option>
-                <option value="low">낮음</option>
-              </select>
-            </div>
+            <PrioritySelect
+              id={`todo-priority-${todo.id}`}
+              value={todo.priority}
+              onChange={(event) => updatePriority(todo.id, event.target.value)}
+              badgeClass={currentPriority.badge}
+              label={currentPriority.label}
+            />
 
             {!todo.done ? (
-              <div className="order-last flex w-full items-center gap-1.5 border-t border-slate-200/60 pt-2 sm:order-none sm:w-auto sm:border-0 sm:pt-0 dark:border-slate-700/60">
+              <>
                 <label className="sr-only" htmlFor={`todo-due-${todo.id}`}>
                   마감일
                 </label>
-                <div className="relative inline-flex min-w-0 flex-1 items-center sm:flex-initial">
-                  <CalendarIcon className="pointer-events-none absolute left-2.5 h-3 w-3 text-slate-400" />
-                  <input
-                    id={`todo-due-${todo.id}`}
-                    type="date"
-                    value={todo.dueDate || ''}
-                    onChange={(event) =>
-                      updateDueDate(todo.id, event.target.value)
-                    }
-                    className="w-full min-w-0 cursor-pointer rounded-lg border-0 bg-slate-100/80 py-1 pl-7 pr-1 text-[11px] font-semibold text-slate-600 outline-none transition hover:bg-slate-200/80 focus:ring-2 focus:ring-indigo-500/20 sm:max-w-[9.5rem] dark:bg-slate-700/60 dark:text-slate-300 dark:hover:bg-slate-700"
-                    aria-label="마감일 변경"
-                  />
-                </div>
+                <input
+                  id={`todo-due-${todo.id}`}
+                  type="date"
+                  value={todo.dueDate || ''}
+                  onChange={(event) =>
+                    updateDueDate(todo.id, event.target.value)
+                  }
+                  className={`${metaChipClass} ${dateChipClass} todo-meta-date max-w-[7.25rem] cursor-pointer border-0 outline-none transition hover:opacity-90 focus:ring-2 focus:ring-indigo-500/20`}
+                  aria-label="마감일 변경"
+                />
                 {todo.dueDate && dueInfo && (
-                  <span
-                    className={`shrink-0 rounded-lg px-2 py-0.5 text-[11px] font-bold ${dueInfo.badge}`}
-                  >
+                  <span className={`${metaChipClass} ${dueInfo.badge}`}>
                     {dueInfo.text}
                   </span>
                 )}
-              </div>
+              </>
             ) : (
               todo.dueDate && (
-                <span className="order-last w-full rounded-lg border-t border-slate-200/60 bg-transparent px-0 py-2 text-[11px] font-medium text-slate-500 sm:order-none sm:w-auto sm:border-0 sm:py-0 sm:px-2 sm:bg-slate-100 dark:border-slate-700/60 dark:sm:bg-slate-700 dark:text-slate-400">
+                <span className={`${metaChipClass} ${dateChipClass}`}>
                   {todo.dueDate}
                 </span>
               )
