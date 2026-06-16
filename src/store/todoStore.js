@@ -36,11 +36,13 @@ const useTodoStore = create((set, get) => ({
         todos: [...state.todos, todo],
         isSaving: false,
       }));
+      return true;
     } catch (error) {
       set({
         isSaving: false,
         error: error.message || '할 일을 추가하지 못했습니다.',
       });
+      return false;
     }
   },
 

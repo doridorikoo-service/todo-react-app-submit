@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import AddTodo from '../components/AddTodo';
 import EmptyState from '../components/EmptyState';
-import { ChevronIcon, ClipboardIcon } from '../components/Icons';
+import { ChevronIcon, ClipboardIcon, SearchIcon } from '../components/Icons';
 import TodoItem from '../components/TodoItem';
 import TodoToolbar from '../components/TodoToolbar';
 import WeatherWidget from '../components/WeatherWidget';
@@ -40,37 +40,48 @@ function sortTodos(todos) {
   });
 }
 
-function ProgressRing({ percent, accent }) {
-  const radius = 18;
+function ProgressRing({ percent, accent, compact = false }) {
+  const radius = compact ? 13 : 18;
+  const viewSize = compact ? 36 : 44;
+  const ringClass = compact ? 'h-9 w-9' : 'h-12 w-12';
+  const labelClass = compact
+    ? 'text-[9px] font-bold text-slate-600 dark:text-slate-300'
+    : 'text-[10px] font-bold text-slate-600 dark:text-slate-300';
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
+  const center = viewSize / 2;
 
   return (
-    <div className="relative h-12 w-12 shrink-0">
-      <svg className="h-12 w-12 -rotate-90" viewBox="0 0 44 44">
+    <div className={`relative shrink-0 ${ringClass}`}>
+      <svg
+        className={`${ringClass} -rotate-90`}
+        viewBox={`0 0 ${viewSize} ${viewSize}`}
+      >
         <circle
-          cx="22"
-          cy="22"
+          cx={center}
+          cy={center}
           r={radius}
           fill="none"
           stroke="currentColor"
-          strokeWidth="3"
+          strokeWidth={compact ? 2.5 : 3}
           className="text-slate-200 dark:text-slate-700"
         />
         <circle
-          cx="22"
-          cy="22"
+          cx={center}
+          cy={center}
           r={radius}
           fill="none"
           stroke={accent}
-          strokeWidth="3"
+          strokeWidth={compact ? 2.5 : 3}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           className="transition-all duration-500"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-slate-600 dark:text-slate-300">
+      <span
+        className={`absolute inset-0 flex items-center justify-center ${labelClass}`}
+      >
         {percent}%
       </span>
     </div>
@@ -109,10 +120,25 @@ function TodoPage() {
   const [filter, setFilter] = useState('all');
   const [isPendingExpanded, setIsPendingExpanded] = useState(true);
   const [isCompletedExpanded, setIsCompletedExpanded] = useState(true);
+  const resultsRef = useRef(null);
 
   useEffect(() => {
     fetchTodos();
   }, [fetchTodos]);
+
+  useEffect(() => {
+    if (!searchText.trim()) return;
+
+    const timer = window.setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [searchText]);
+
+  const handleSearchChange = (value) => {
+    setSearchText(value);
+  };
 
   const pendingCount = useMemo(
     () => todos.filter((todo) => !todo.done).length,
@@ -136,15 +162,38 @@ function TodoPage() {
     });
   }, [filter, searchText, todos]);
 
-  const pendingTodos = sortTodos(todos.filter((todo) => !todo.done));
-  const completedTodos = sortTodos(todos.filter((todo) => todo.done));
-  const searchResults = sortTodos(filteredTodos);
+  const isFiltering = searchText.trim() !== '' || filter !== 'all';
+
+  const pendingTodos = useMemo(
+    () => sortTodos(filteredTodos.filter((todo) => !todo.done)),
+    [filteredTodos]
+  );
+  const completedTodos = useMemo(
+    () => sortTodos(filteredTodos.filter((todo) => todo.done)),
+    [filteredTodos]
+  );
+  const searchResults = filteredTodos;
+
+  const showPendingSection = filter !== 'completed';
+  const showCompletedSection = filter !== 'pending';
+
+  const pendingEmptyTitle = isFiltering
+    ? '조건에 맞는 진행 중인 할 일이 없어요'
+    : '진행 중인 할 일이 없어요';
+  const pendingEmptyDescription = isFiltering
+    ? '검색어나 필터를 변경해 보세요'
+    : '위 입력창에서 새로운 할 일을 추가해 보세요';
+
+  const allCompletedCount = useMemo(
+    () => todos.filter((todo) => todo.done).length,
+    [todos]
+  );
 
   const handleClearCompleted = () => {
-    if (completedTodos.length === 0) return;
+    if (allCompletedCount === 0) return;
 
     const confirmed = window.confirm(
-      `완료된 할 일 ${completedTodos.length}개를 모두 삭제할까요?`
+      `완료된 할 일 ${allCompletedCount}개를 모두 삭제할까요?`
     );
 
     if (confirmed) {
@@ -196,29 +245,53 @@ function TodoPage() {
             </p>
           </div>
 
-          <div className="flex w-full shrink-0 items-center justify-between gap-3 sm:w-auto sm:justify-end">
+          <div className="flex w-full shrink-0 items-center gap-2 md:w-auto md:gap-3">
             {todos.length > 0 && (
-              <div className="glass-panel flex min-w-0 flex-1 items-center gap-3 rounded-2xl px-3 py-2 sm:flex-initial sm:px-4">
-                <ProgressRing
-                  percent={completionPercent}
-                  accent={theme.accent}
-                />
-                <div className="text-left">
-                  <p className="text-[11px] font-medium text-slate-400">
-                    진행률
-                  </p>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                    {completedCount}/{todos.length} 완료
-                  </p>
+              <>
+                <div className="glass-panel flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-1.5 md:hidden">
+                  <ProgressRing
+                    percent={completionPercent}
+                    accent={theme.accent}
+                    compact
+                  />
+                  <span className="shrink-0 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                    {completedCount}/{todos.length}
+                  </span>
+                  <div className="relative min-w-0 flex-1">
+                    <SearchIcon className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="search"
+                      value={searchText}
+                      onChange={(event) => handleSearchChange(event.target.value)}
+                      placeholder="검색"
+                      className="w-full min-w-0 rounded-lg border border-slate-200/60 bg-white/50 py-1.5 pl-7 pr-2 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/15 dark:border-slate-600/60 dark:bg-slate-800/50 dark:text-slate-100 dark:placeholder:text-slate-500"
+                      aria-label="할 일 검색"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div className="glass-panel hidden min-w-0 items-center gap-3 rounded-2xl px-4 py-2 md:flex">
+                  <ProgressRing
+                    percent={completionPercent}
+                    accent={theme.accent}
+                  />
+                  <div className="text-left">
+                    <p className="text-[11px] font-medium text-slate-400">
+                      진행률
+                    </p>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                      {completedCount}/{todos.length} 완료
+                    </p>
+                  </div>
+                </div>
+              </>
             )}
             <ThemeToggle />
           </div>
         </header>
 
         <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_min(100%,320px)] xl:items-start xl:gap-8">
-          <section className="min-w-0 space-y-4 sm:space-y-5">
+          <section ref={resultsRef} className="min-w-0 scroll-mt-4 space-y-4 sm:space-y-5">
             <AddTodo />
 
             {error && (
@@ -230,6 +303,13 @@ function TodoPage() {
               </div>
             )}
 
+            {isFiltering && (
+              <p className="rounded-xl bg-indigo-50/80 px-3 py-2 text-xs font-medium text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300">
+                검색·필터 적용 중 · {filteredTodos.length}개 표시
+              </p>
+            )}
+
+            {showPendingSection && (
             <div className="space-y-3">
               <SectionHeader
                 title="진행 중"
@@ -256,13 +336,14 @@ function TodoPage() {
                 ) : (
                   <EmptyState
                     icon={ClipboardIcon}
-                    title="진행 중인 할 일이 없어요"
-                    description="위 입력창에서 새로운 할 일을 추가해 보세요"
+                    title={pendingEmptyTitle}
+                    description={pendingEmptyDescription}
                   />
                 ))}
             </div>
+            )}
 
-            {completedTodos.length > 0 && (
+            {showCompletedSection && (completedTodos.length > 0 || (isFiltering && filter === 'completed')) && (
               <div className="space-y-3 pt-2">
                 <SectionHeader
                   title="완료됨"
@@ -270,6 +351,7 @@ function TodoPage() {
                   expanded={isCompletedExpanded}
                   onToggle={() => setIsCompletedExpanded((prev) => !prev)}
                   action={
+                    completedTodos.length > 0 ? (
                     <button
                       type="button"
                       onClick={handleClearCompleted}
@@ -277,16 +359,24 @@ function TodoPage() {
                     >
                       전체 삭제
                     </button>
+                    ) : null
                   }
                 />
 
-                {isCompletedExpanded && (
+                {isCompletedExpanded &&
+                  (completedTodos.length > 0 ? (
                   <div className="space-y-2.5">
                     {completedTodos.map((todo) => (
                       <TodoItem key={todo.id} todo={todo} />
                     ))}
                   </div>
-                )}
+                  ) : (
+                    <EmptyState
+                      icon={ClipboardIcon}
+                      title="조건에 맞는 완료 항목이 없어요"
+                      description="검색어나 필터를 변경해 보세요"
+                    />
+                  ))}
               </div>
             )}
 
@@ -296,10 +386,11 @@ function TodoPage() {
             <WeatherWidget accentColor={theme.accent} />
             <TodoToolbar
               searchText={searchText}
-              onSearchChange={setSearchText}
+              onSearchChange={handleSearchChange}
               filter={filter}
               onFilterChange={setFilter}
               results={searchResults}
+              hideSearchOnMobile
             />
           </aside>
         </div>

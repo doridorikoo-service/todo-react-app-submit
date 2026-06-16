@@ -18,18 +18,22 @@ function AddTodo() {
   const [dueDate, setDueDate] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const addTodo = useTodoStore((state) => state.addTodo);
+  const isSaving = useTodoStore((state) => state.isSaving);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const trimmedTitle = title.trim();
-    if (!trimmedTitle) return;
+    if (!trimmedTitle || isSaving) return;
 
-    addTodo({ title: trimmedTitle, priority, dueDate });
-    setTitle('');
-    setPriority('none');
-    setDueDate('');
-    setIsExpanded(false);
+    const success = await addTodo({ title: trimmedTitle, priority, dueDate });
+
+    if (success) {
+      setTitle('');
+      setPriority('none');
+      setDueDate('');
+      setIsExpanded(false);
+    }
   };
 
   const selectedPriority = priorityOptions.find((o) => o.value === priority);
@@ -48,17 +52,23 @@ function AddTodo() {
             onChange={(event) => setTitle(event.target.value)}
             onFocus={() => setIsExpanded(true)}
             placeholder="새로운 할 일을 입력하세요"
-            className="w-full min-w-0 rounded-xl border-0 bg-transparent px-2 py-3 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400 sm:px-3 dark:text-slate-100 dark:placeholder:text-slate-500"
+            disabled={isSaving}
+            className="w-full min-w-0 rounded-xl border-0 bg-transparent px-2 py-3 text-sm font-medium text-slate-800 outline-none placeholder:text-slate-400 disabled:opacity-60 sm:px-3 dark:text-slate-100 dark:placeholder:text-slate-500"
             aria-label="할 일 내용"
           />
         </div>
         <button
           type="submit"
-          disabled={!title.trim()}
+          disabled={!title.trim() || isSaving}
+          aria-busy={isSaving}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm transition hover:bg-indigo-700 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none sm:h-11 sm:w-11 dark:disabled:bg-slate-700 dark:disabled:text-slate-500"
-          aria-label="할 일 추가"
+          aria-label={isSaving ? '저장 중' : '할 일 추가'}
         >
-          <PlusIcon />
+          {isSaving ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : (
+            <PlusIcon />
+          )}
         </button>
       </div>
 
@@ -83,6 +93,7 @@ function AddTodo() {
                   id="todo-priority"
                   value={priority}
                   onChange={(event) => setPriority(event.target.value)}
+                  disabled={isSaving}
                   className={`${inputClassName} appearance-none pr-8`}
                 >
                   {priorityOptions.map((option) => (
@@ -110,6 +121,7 @@ function AddTodo() {
                 type="date"
                 value={dueDate}
                 onChange={(event) => setDueDate(event.target.value)}
+                disabled={isSaving}
                 className={inputClassName}
               />
             </div>

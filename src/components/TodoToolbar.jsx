@@ -33,6 +33,7 @@ function TodoToolbar({
   filter,
   onFilterChange,
   results = [],
+  hideSearchOnMobile = false,
 }) {
   return (
     <section className="glass-panel animate-fade-up-delay-3 min-w-0 rounded-2xl p-4 sm:p-5">
@@ -40,7 +41,9 @@ function TodoToolbar({
         검색 & 필터
       </h2>
 
-      <div className="relative mt-4">
+      <div
+        className={`relative mt-4 ${hideSearchOnMobile ? 'hidden md:block' : ''}`}
+      >
         <SearchIcon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           id="todo-search"

@@ -152,7 +152,7 @@ function TodoItem({ todo }) {
         />
 
         <div className="min-w-0 flex-1">
-          <div className="flex items-start gap-2">
+          <div className="flex items-start gap-1.5 sm:gap-2">
             {isEditing ? (
               <input
                 type="text"
@@ -164,21 +164,30 @@ function TodoItem({ todo }) {
                 className="w-full rounded-lg border border-indigo-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 outline-none ring-4 ring-indigo-500/10 dark:border-indigo-600 dark:bg-slate-800 dark:text-slate-100 dark:ring-indigo-500/20"
               />
             ) : (
-              <button
-                type="button"
-                onDoubleClick={startEditing}
-                title="더블클릭하여 수정"
-                className={`flex min-w-0 flex-1 items-start gap-1.5 text-left text-sm font-medium leading-snug break-words sm:text-[15px] ${
-                  todo.done
-                    ? 'text-slate-400 line-through dark:text-slate-500'
-                    : 'text-slate-800 dark:text-slate-100'
-                }`}
-              >
-                <span className="min-w-0 flex-1">{todo.title}</span>
+              <>
+                <button
+                  type="button"
+                  onDoubleClick={startEditing}
+                  className={`min-w-0 flex-1 text-left text-sm font-medium leading-snug break-words sm:text-[15px] ${
+                    todo.done
+                      ? 'text-slate-400 line-through dark:text-slate-500'
+                      : 'text-slate-800 dark:text-slate-100'
+                  }`}
+                >
+                  {todo.title}
+                </button>
                 {!todo.done && (
-                  <PencilIcon className="mt-1 h-3 w-3 shrink-0 text-slate-300 opacity-0 transition group-hover:opacity-100 dark:text-slate-600" />
+                  <button
+                    type="button"
+                    onClick={startEditing}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-indigo-50 hover:text-indigo-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:bg-indigo-950/40 dark:hover:text-indigo-400"
+                    aria-label={`${todo.title} 수정`}
+                    title="수정"
+                  >
+                    <PencilIcon />
+                  </button>
                 )}
-              </button>
+              </>
             )}
           </div>
 
