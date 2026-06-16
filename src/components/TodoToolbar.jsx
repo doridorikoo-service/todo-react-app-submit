@@ -1,4 +1,5 @@
 import { SearchIcon } from './Icons';
+import { formatDueDateLabel } from '../constants/todoMeta';
 
 const filterTabs = [
   { value: 'all', label: '전체' },
@@ -111,7 +112,7 @@ function TodoToolbar({
                     </span>
                     <span className="mt-0.5 flex items-center gap-2 text-[10px] text-slate-400 dark:text-slate-500">
                       <span>{priorityLabel[todo.priority] || '없음'}</span>
-                      {todo.dueDate && <span>{todo.dueDate}</span>}
+                      <span>{formatDueDateLabel(todo.dueDate)}</span>
                       <span>{todo.done ? '완료' : '진행 중'}</span>
                     </span>
                   </span>

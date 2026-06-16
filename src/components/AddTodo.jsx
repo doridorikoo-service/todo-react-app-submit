@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NO_DUE_DATE_LABEL } from '../constants/todoMeta';
 import useTodoStore from '../store/todoStore';
 import { PlusIcon } from './Icons';
 
@@ -124,6 +125,11 @@ function AddTodo() {
                 disabled={isSaving}
                 className={inputClassName}
               />
+              {!dueDate && (
+                <p className="mt-1.5 text-[11px] font-semibold text-slate-400">
+                  {NO_DUE_DATE_LABEL}으로 등록됩니다
+                </p>
+              )}
             </div>
           </div>
         </div>

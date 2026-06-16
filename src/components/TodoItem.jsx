@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { formatDueDateLabel } from '../constants/todoMeta';
 import useTodoStore from '../store/todoStore';
 import { ChevronIcon, PencilIcon, TrashIcon } from './Icons';
 
@@ -104,6 +105,32 @@ function PrioritySelect({ id, value, onChange, badgeClass, label }) {
         <option value="medium">중간</option>
         <option value="low">낮음</option>
       </select>
+    </div>
+  );
+}
+
+function DueDateControl({ id, value, onChange, done }) {
+  const label = formatDueDateLabel(value);
+
+  if (done) {
+    return (
+      <span className={`${metaChipClass} ${dateChipClass}`}>{label}</span>
+    );
+  }
+
+  return (
+    <div
+      className={`relative shrink-0 ${metaChipClass} ${dateChipClass} ${value ? 'todo-meta-date max-w-[7.25rem]' : ''}`}
+    >
+      <span className="pointer-events-none">{label}</span>
+      <input
+        id={id}
+        type="date"
+        value={value || ''}
+        onChange={onChange}
+        className="absolute inset-0 cursor-pointer opacity-0"
+        aria-label="마감일 변경"
+      />
     </div>
   );
 }
@@ -234,18 +261,13 @@ function TodoItem({ todo }) {
 
             {!todo.done ? (
               <>
-                <label className="sr-only" htmlFor={`todo-due-${todo.id}`}>
-                  마감일
-                </label>
-                <input
+                <DueDateControl
                   id={`todo-due-${todo.id}`}
-                  type="date"
-                  value={todo.dueDate || ''}
+                  value={todo.dueDate}
                   onChange={(event) =>
                     updateDueDate(todo.id, event.target.value)
                   }
-                  className={`${metaChipClass} ${dateChipClass} todo-meta-date max-w-[7.25rem] cursor-pointer border-0 outline-none transition hover:opacity-90 focus:ring-2 focus:ring-indigo-500/20`}
-                  aria-label="마감일 변경"
+                  done={false}
                 />
                 {todo.dueDate && dueInfo && (
                   <span className={`${metaChipClass} ${dueInfo.badge}`}>
@@ -254,11 +276,12 @@ function TodoItem({ todo }) {
                 )}
               </>
             ) : (
-              todo.dueDate && (
-                <span className={`${metaChipClass} ${dateChipClass}`}>
-                  {todo.dueDate}
-                </span>
-              )
+              <DueDateControl
+                id={`todo-due-done-${todo.id}`}
+                value={todo.dueDate}
+                onChange={() => {}}
+                done
+              />
             )}
           </div>
         </div>
