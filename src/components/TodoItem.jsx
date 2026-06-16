@@ -156,6 +156,14 @@ function TodoItem({ todo }) {
     }
   };
 
+  const handleDelete = () => {
+    const confirmed = window.confirm(`"${todo.title}" 할 일을 삭제할까요?`);
+
+    if (confirmed) {
+      deleteTodo(todo.id);
+    }
+  };
+
   return (
     <article
       id={`todo-${todo.id}`}
@@ -257,7 +265,7 @@ function TodoItem({ todo }) {
 
         <button
           type="button"
-          onClick={() => deleteTodo(todo.id)}
+          onClick={handleDelete}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500 sm:text-slate-300 sm:opacity-0 sm:group-hover:opacity-100 dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
           aria-label={`${todo.title} 삭제`}
         >
